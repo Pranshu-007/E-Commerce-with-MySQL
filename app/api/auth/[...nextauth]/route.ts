@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 // import GithubProvider from "next-auth/providers/github";
 // import GoogleProvider from "next-auth/providers/google";
 // import { nanoid } from "nanoid";
-import { authOptions } from "@/lib/authoptions";
+import { authOptions } from "@/app/authOptions";
 
 // export const authOptions: any = {
 //   // Configure one or more authentication providers
