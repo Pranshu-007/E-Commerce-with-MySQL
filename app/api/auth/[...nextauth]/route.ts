@@ -1,11 +1,12 @@
 import NextAuth from "next-auth";
 import { Account, User as AuthUser } from "next-auth";
-import GithubProvider from "next-auth/providers/github";
+// import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
+// import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import prisma from "@/utils/db";
-import { nanoid } from "nanoid";
+// import { nanoid } from "nanoid";
+import { User } from "next-auth";
 
 export const authOptions: any = {
   // Configure one or more authentication providers
@@ -17,7 +18,10 @@ export const authOptions: any = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials: any) {
+      async authorize(credentials: Record<"email" | "password", string> | undefined) {
+        if (!credentials) {
+          return null;
+        }
 
         try {
           const user = await prisma.user.findFirst({
@@ -25,18 +29,26 @@ export const authOptions: any = {
               email: credentials.email,
             },
           });
+
           if (user) {
             const isPasswordCorrect = await bcrypt.compare(
               credentials.password,
               user.password!
             );
             if (isPasswordCorrect) {
-              return user;
+              return {
+                id: user.id,
+                email: user.email,
+                password: null, // Do not expose password
+                role: user.role || null,
+              } as User;
             }
           }
         } catch (err: any) {
           throw new Error(err);
         }
+
+        return null;
       },
     })
     // GithubProvider({
@@ -99,5 +111,5 @@ export const authOptions: any = {
   },
 };
 
-export const handler = NextAuth(authOptions);
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
